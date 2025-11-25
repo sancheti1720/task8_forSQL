@@ -1,0 +1,94 @@
+CREATE TABLE authors (
+    author_id INT PRIMARY KEY,
+    name VARCHAR(100)
+);
+
+CREATE TABLE books (
+    book_id INT PRIMARY KEY,
+    title VARCHAR(200),
+    author_id INT,
+    price DECIMAL(10,2),
+    FOREIGN KEY (author_id) REFERENCES authors(author_id)
+);
+
+CREATE TABLE issued_books (
+    issue_id INT PRIMARY KEY,
+    book_id INT,
+    student_name VARCHAR(100),
+    issue_date DATE,
+    FOREIGN KEY (book_id) REFERENCES books(book_id)
+);
+
+INSERT INTO authors VALUES
+(1, 'APJ Abdul Kalam'),
+(2, 'Chetan Bhagat'),
+(3, 'Sudha Murty');
+
+INSERT INTO books VALUES
+(1, 'Wings of Fire', 1, 450),
+(2, 'Half Girlfriend', 2, 300),
+(3, 'Wise & Otherwise', 3, 350),
+(4, 'Grandma’s Bag of Stories', 3, 200);
+
+INSERT INTO issued_books VALUES
+(1, 1, 'Rahul', '2025-01-10'),
+(2, 3, 'Sneha', '2025-01-12');
+
+DELIMITER $$
+
+CREATE PROCEDURE getBooksByAuthor(IN authorName VARCHAR(100))
+BEGIN
+    SELECT 
+        b.book_id,
+        b.title,
+        b.price
+    FROM books b
+    JOIN authors a ON a.author_id = b.author_id
+    WHERE a.name = authorName;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE PROCEDURE countBooksOfAuthor(
+    IN authorName VARCHAR(100),
+    OUT totalBooks INT
+)
+BEGIN
+    SELECT COUNT(b.book_id)
+    INTO totalBooks
+    FROM books b
+    JOIN authors a ON a.author_id = b.author_id
+    WHERE a.name = authorName;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE FUNCTION calculatePriceWithTax(
+    bookPrice DECIMAL(10,2)
+)
+RETURNS DECIMAL(10,2)
+DETERMINISTIC
+BEGIN
+    RETURN bookPrice + (bookPrice * 0.10); -- 10% tax
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE FUNCTION isExpensive(price DECIMAL(10,2))
+RETURNS VARCHAR(20)
+DETERMINISTIC
+BEGIN
+    IF price > 300 THEN
+        RETURN 'Expensive';
+    ELSE
+        RETURN 'Affordable';
+    END IF;
+END $$
+
+DELIMITER ;
